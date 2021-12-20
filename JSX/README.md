@@ -67,3 +67,86 @@ functiom App() {
 컴포넌트 내부는 하나의 DOM 트리 구조로 이루어져 한다는 규칙이 있기 때문이다
 
 
+#### 조건부 연산자
+
+JSX내부의 자바스크립트 표현식에서 if문 대신 삼항 연산자를 사용한다
+```js
+function App() {
+  const name = 'Lee';
+
+  return(
+    <>
+      <div>
+        {
+          name === 'Lee'
+          ? (<p>Hola Lee</p>)
+          : (<p>Who are you?</p>)
+        } 
+      </div>
+    </>
+  )
+}
+```
+
+#### AND 연산자
+```js
+function App() {
+  const name = 'Lee';
+
+  return(
+    <>
+      <div>
+        {name === 'Lee' && <p>Hola Lee</p>}
+      </div>
+    </>
+  )
+}
+```
+예외적으로 && 연산자로 조건부 렌더링할 때 falsy한 값 0은 화면에 나타난다
+
+#### undefined 렌더링하지 않기
+리액트 컴포넌트의 함수는 undefined만 반환하여 렌더링하는 상황을 만들면 안 된다
+```js
+function App() {
+  const name = undefined;
+
+  // X
+  return name;
+
+  // O
+  return (
+    <>
+      {name || 'error'}
+    </>
+  )
+}
+```
+
+#### 인라인 스타일링
+```js
+function App() {
+  return (
+    <> 
+      <div style={{
+                    backgroundColor: 'black',
+                    color: 'white',
+                    fontSize: '48px',
+                    padding: 16 // 단위 생략시 px 자동 지정
+                  }}>
+      </div>
+    </>
+  )
+}
+```
+
+#### class X classsName O
+```js
+function App() {
+  return (
+    <>
+      <div className='addBtn'>
+      </div>
+    </>
+  )
+}
+```
