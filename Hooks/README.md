@@ -83,3 +83,59 @@ function FriendState(props) {
 React는 캄포넌트가 마운트 해제될 때 clean-up을 실행한다
 effect가 한번이 아니라 렌더링이 실행될 때마다 실행된다면 다음 차례의 effect를 실행하기 전에 이전 렌더링에서 파생된 effect를 clean-up하는 이유이다
 이깃은 버그를 방지하고 성능 저하를 막는다
+
+
+## useReducer
+
+```js
+const initialState = { count: 0 };
+
+function reducer(state, action) {
+  switch (action.type) {
+    case 'increase':
+      return { count: state.count + 1 };
+    case 'decrease':
+      return { count: state.count - 1 };
+    default:
+      throw new Error();
+  }
+}
+
+function Counter() {
+  const [state, dispatch] = useReducer(reduer, initialState);
+
+  return (
+    <>
+      Count: {state.count}
+      <button onClick={() => dispatch({ type: 'increase' })}>+</button>
+      <button onClick={() => dispatch({ type: 'decrease' })}>-</button>
+    </>
+  )
+}
+```
+리듀서는 현재 상태, 업테이트를 위해 필요한 정보를 담은 액션 값을 전달 받아 새로운 상태를 반환하는 함수로,
+새로운 상태를 만들 떄는 반드시 불변성을 지켜야 한다
+
+useReducer의 첫번째 파라미터에는 리듀서 함수를 두번째 파라미터에는 해당 리듀서의 기본값을 넣어주며 반환하는 값은 현재 상태인 state와 액션을 발상시키는 dispatch 함수이다
+dispatch(action)의 형태로 호출하면 리듀서 함수가 호출되는 구조이다
+
+Reducer Hook을 사용할 때 컴포넌트의 업데이트 로직을 컴포넌트 바깥으로 분리할 수 있다는 장점이 있다
+
+
+## useCallback
+
+```js
+const memoizedCallback = useCallback(
+  () => {
+    doSomething(a, b);
+  }, [a, b])
+```
+메모이제이션된 콜백을 반환한다
+  - 메모이제이션은 컴퓨터 프로그램이 동일한 계산을 반복해야할 때 이전에 계산한 값을 메모리에 저장함으로써 동일한 계산의 반복 수행을 제거하여 프로그램 실행속도를 빠르게 하는 기술이다
+
+uesCallback의 첫번재 파라미터는 생성하고 싶은 함수, 두번째 파라미터는 배열을 넣는다
+이 배열에는 **어떤 값이 바뀌었을 때 함수를 새로 생성할지 명시한다**
+비어 있는 배열은 **컴포넌트가 렌더링될 때 만들었던 함수를 계속 재사용**하게 되며 
+특정 식별자를 넣으면 해당 이벤트가 발생하거나 렌더링될 때 새로 만들어진 함수를 사용한다
+
+함수 내부에서 상태에 의존해야 할 때는 그 값을 반드시 두번째 파라미터 안에 포함시켜야 한다
