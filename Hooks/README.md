@@ -139,3 +139,94 @@ uesCallback의 첫번재 파라미터는 생성하고 싶은 함수, 두번째 �
 특정 식별자를 넣으면 해당 이벤트가 발생하거나 렌더링될 때 새로 만들어진 함수를 사용한다
 
 함수 내부에서 상태에 의존해야 할 때는 그 값을 반드시 두번째 파라미터 안에 포함시켜야 한다
+
+
+## useMemo
+
+함수형 컴포넌트 내부에서 발생하는 연산을 최적화할 수 있다
+
+```js
+const getAverage = (numbers) => {
+  if (numbers.length === 0) return 0;
+  const sum = numbers.reduce((a, b) => a + b);
+  return sum / numbers.length;
+}
+
+const Average = () => {
+  const [list, setList] = useState([]);
+  const [number, setNumber] = useState('');
+  const onChange = ({ target }) => setNumber(target.value);
+  const onInsert = () => {
+    const nextList = list.concat(parseInt(number));
+    setList(nextList);
+    setNumber('');
+  }
+
+  return (
+    <>
+      <div>
+        <input value={number} onChange={onChange} />
+        <button onClick={onInsert}>등록</button>
+      </div>
+      <div>
+        <p>평균값: {getAverage(list)}</p>
+      </div>
+    </>
+  )
+}
+```
+이 컴포넌트는 숫자 등록 뿐만 아니라 input 내용이 수정될 때도 getAverage 함수가 호출된다
+input 내용이 바뀔 때는 평균값을 다시 계산할 필요가 없으므로 useMemo Hook을 사용하여 최적화 할 수 있다
+
+렌더링하는 과정에서 특정 값이 바뀌었을 때만 연산을 실행하고 원하는 값이 바뀌자 않았다면
+이저에 연산한 결과를 다시 사용하는 방식이
+```js
+const getAverage = (numbers) => {
+  if (numbers.length === 0) return 0;
+  const sum = numbers.reduce((a, b) => a + b);
+  return sum / numbers.length;
+}
+
+const Average = () => {
+  const [list, setList] = useState([]);
+  const [number, setNumber] = useState('');
+  const onChange = ({ target }) => setNumber(target.value);
+  const onInsert = () => {
+    const nextList = list.concat(parseInt(number));
+    setList(nextList);
+    setNumber('');
+  }
+
+  const avg = useMomo(() => getAverage(list), [list]);
+
+  return (
+    <>
+      <div>
+        <input value={number} onChange={onChange} />
+        <button onClick={onInsert}>등록</button>
+      </div>
+      <div>
+        <p>평균값: {avg)}</p>
+      </div>
+    </>
+  )
+}
+```
+
+
+## useRef
+
+컴포넌트에서 어떠한 변수를 선언하게 되면 다음 렌더링할 때 해당 값이 유지되지 않고 모두 초기화되기 때문에 useRef를 사용한다
+
+useRef를 사용하여 ref를 설정하면 useRef를 통해 만든 객체 안의 current값이 실제 엘리먼트를 가르킨다
+
+```js
+const Component = () => {
+  const id = useRef(1);
+  const setId = (n) => {
+    id.current = n; // .current 로컬 변수는 렌더링과 상관없이 바뀔 수 있는 값이다
+  }
+}
+```
+useRef는 내용이 변경될 때 컴포넌트가 다시 렌더링되지 않기 때문에
+렌더링하게 할려면 콜백 ref를 사용한다
