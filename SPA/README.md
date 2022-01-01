@@ -107,3 +107,148 @@ History API를 사용해 페이지 주소만 변경한다. Link 태그는 a 태�
 
 ### URL 파라미터
 
+라우터로 사용하는 컴포넌트에서 전달 받는 **match**라는 객체 안에 params 값을 참조한다
+match 객체 안에는 현재 컴포넌트가 어떤 경로 규칙에 의해 보이는지가 들어있다
+App.js
+```js
+function App() {
+  return(
+    <>  
+      <Route path="/:id" component={PostPage} />
+    </>
+  )
+}
+
+export default App;
+```
+PostPage.js
+```js
+export default function PostPage({ match }) {
+  const { id } = match.params;
+  console.log(match);
+  // {path: '/:id', url: '/3', isExact: true, params: {…}}
+  // isExact: true
+  // params: {id: '3'}
+  // path: "/:id"
+  // url: "/3"
+
+  return (
+    <>
+      <PostContainer postId={parseInt(id)} />
+    </>
+  )
+}
+```
+
+
+### URL 쿼리
+
+쿼리는 location 객체의 search 값에서 조회할 수 있다
+location 객체는 라우트로 사용된 컴포넌트에게 props로 전달하며
+웹 애플리케이션의 현재 주소에 대한 정보를 가지고 있다
+**http://localhost:3000/home?detail=true&foward=false**주소 값
+```js
+{
+  "pathname": "/home",
+  "search": "?detail=true&foward=false",
+  "hash": "",
+}
+```
+
+URL 쿼리를 읽을 때는 위 객체의 search 값을 확인하는데 이 값은 문자열 형태이다
+search 값에서 특정 값을 읽어오기 위해서 이 문자열을 객체 형태로 반환한다
+보통 쿼리 문자열을 객체로 반환할 때는 **qs** 라이브러리를 사용한다
+**npm i qs**
+```js
+import qs from 'qs';
+
+const Home = ({ location }) => {
+  const query = qs.parse(location.search, {
+    ignoreQueryPrefix: true // 이 설정이 있어야 문자열에서 ? 를 생략한다
+  });
+  const queryDetail = query.detail === 'true';
+  return (
+    <>
+      <h1>Hola</h1>
+      { queryDetail && <p>detail=true</p> }
+    </h1>
+  )
+}
+```
+쿼리의 결과 값은 항상 문자열이다
+
+
+### 서브 라우트
+
+라우트로 사용되는 컴포넌트 내부에 Route 컴포넌트를 또 사용하는 것이다
+```js
+const Home = () => {
+
+  return (
+    <>
+      <h1>Home</h1>
+      <Route path="/profile" exact render={() => <div>사용자 정보</div>} />
+    </>
+  )
+}
+```
+
+component 대신 render라는 props를 넣어 주었는데 컴포넌트 자체가 아니라 보여주고 싶은 JSX를 넣어줄 수 있다
+컴포넌트를 따로 분리하기 애매하거나 prop를 별도로 넣어주고 싶을 때도 사용한다
+
+
+### 라우터 부가 기능
+
+
+#### history
+
+history 객체는 라우트로 사용된 컴포넌트에게 match, location 과 함께 전달되는 props 중 하나이다.
+이 객체를 통하여, 우리가 컴포넌트 내에 구현하는 메소드에서 라우터에 직접 접근을 할 수 있다 - 뒤로가기, 특정 경로로 이동, 이탈 방지 등..
+
+#### withRouter
+
+withRouter HoC 는 라우트 컴포넌트가 아닌곳에서 match / location / history 를 사용해야 할 때 쓰면 된다
+```js
+import React from 'react';
+import { withRouter } from 'react-router-dom';
+const WithRouterSample = ({ location, match, history }) => {
+  return (
+    <>
+      <h4>location</h4>
+      <textarea value={JSON.stringify(location, null, 2)} readOnly />
+      <h4>match</h4>
+      <textarea value={JSON.stringify(match, null, 2)} readOnly />
+      <button onClick={() => history.push('/')}>홈으로</button>
+    </>
+  );
+};
+
+export default withRouter(WithRouterSample);
+```
+
+
+#### Switch
+
+Switch는 여러 Route 들을 감싸서 그 중 규칙이 일치하는 라우트 단 하나만을 렌더링 시켜준다
+Switch를 사용하면 아무것도 일치하지 않았을 때 보여줄 **Not Found페이지** 를 구현할 수 있다
+```js
+      <Switch>
+        <Route path="/" exact={true} component={Home} />
+        <Route path="/about" component={About} />
+        <Route
+          // path 를 따로 정의하지 않으면 모든 상황에 렌더링됨
+          render={({ location }) => (
+            <div>
+              <h2>이 페이지는 존재하지 않습니다:</h2>
+              <p>{location.pathname}</p>
+            </div>
+          )}
+        />
+      </Switch>
+```
+
+
+#### NavLink
+
+NavLink는 Link와 비슷한데 만약 현재 경로와 Link에서 사용하는 경로가 일치할 경우 특정 스타일 혹은
+클래스를 적용할 수 있는 컴포넌트이다
